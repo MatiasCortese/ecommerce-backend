@@ -9,14 +9,27 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "airtable": "^0.12.2",
+    "algoliasearch": "^5.30.0",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.5.0",
+    "firebase-admin": "^13.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "mercadopago": "^2.8.0",
+    "next": "15.3.3",
+    "nodemailer": "^7.0.5",
+    "parse-bearer-token": "^1.0.1",
+    "random-seed": "^0.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.3.3"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@types/algoliasearch": "^3.34.11",
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.17",
+    "@types/random-seed": "^0.3.5",
     "@types/react": "^19",
-    "@types/react-dom": "^19"
+    "@types/react-dom": "^19",
+    "typescript": "^5"
   }
 }

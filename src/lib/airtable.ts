@@ -1,8 +1,9 @@
 import Airtable from "airtable";
 
-const apiKey = "patXOlOzjqqQ7vQXu.e6969d99ad4cf993da1f363642a4db4514afa4fd7f97f4248cb04b1de08cb714";
-const dbId = "appwusjzyQhbjWAmd";
-const airTableBase = new Airtable({apiKey: apiKey}).base(dbId);
+const apiKey = process.env.AIRTABLE_API_KEY as string;
+const dbId = process.env.AIRTABLE_DB_ID as string;
+
+const airTableBase = new Airtable({ apiKey }).base(dbId);
 
 export {airTableBase};
 

@@ -50,12 +50,16 @@ function manageNodemailerEmail(destinatario: any, code: any) {
         if (error) {
             console.error('Error al enviar el correo:', error);
         } else {
-            console.log('Correo enviado:', info.response);
+            console.log('Correo enviado:',
+             info.response);
+             throw error;
         }
     });
 }
 
 export async function sendCodeToEmail(email: any, name: any, last_name: any, address: any, phone: any) {
+        console.log("sendCodeToEmail INICIO", email);
+
     const auth = await Auth.findAuthByEmail(email);
     if (!auth) {
         throw new Error("Auth not found");
@@ -66,7 +70,9 @@ export async function sendCodeToEmail(email: any, name: any, last_name: any, add
     auth.data.code = code;
     auth.data.expires = twentyMinutesFromNow;
     await auth.push();
+    console.log("Antes de enviar mail");
     manageNodemailerEmail(email, code);
+    console.log("Mail enviado");
     return auth;
 }
 

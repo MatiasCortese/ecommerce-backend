@@ -43,7 +43,7 @@ function manageNodemailerEmail(destinatario: any, code: any) {
     const mailOptions = {
         from: process.env.email,
         to: destinatario,
-        subject: 'Código de Autenticación',
+        subject: "Código de Autenticación",
         text: `Tu código de verificación es: ${code}. Este código es válido por 20 minutos.`
     };
     transporter.sendMail(mailOptions, (error, info) => {
@@ -52,7 +52,6 @@ function manageNodemailerEmail(destinatario: any, code: any) {
         } else {
             console.log('Correo enviado:',
              info.response);
-             throw error;
         }
     });
 }

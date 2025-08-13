@@ -13,6 +13,7 @@ export default async function handler(
   if (req.method === 'POST') {
     if(!req.body.email){
       res.status(400).json({ email: "Only email needed" });
+      return;
     }
     const { email, name, last_name, address, phone } = req.body;
     await sendCodeToEmail(email, name, last_name, address, phone);

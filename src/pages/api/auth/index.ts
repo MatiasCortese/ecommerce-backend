@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { sendCodeToEmail } from "@/lib/controllers/auth-controller";
+// import { sendCodeToEmail } from "@/lib/controllers/auth-controller";
+import { sendCodeToEmail } from "../../../lib/controllers/auth-controller";
 
 type Data = {
   email: string;

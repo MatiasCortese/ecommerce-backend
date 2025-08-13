@@ -11,7 +11,15 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<any>,
 ) {
-  console.log("SOY EL BODY ", req.body)
+  let body = req.body;
+if (typeof body === "string") {
+  try {
+    body = JSON.parse(body);
+  } catch (e) {
+    return res.status(400).json({ error: "Invalid JSON" });
+  }
+}
+console.log("SOY EL BODY ", body);
   if (req.method === 'POST') {
     if(!req.body.email){
       res.status(400).json({ email: "Only email needed" });

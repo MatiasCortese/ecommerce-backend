@@ -11,6 +11,7 @@ export default async function handler(
   res: NextApiResponse<any>,
 ) {
   if (req.method === 'POST') {
+    console.log("SOY EL BODY ", req.body)
     if(!req.body.email){
       res.status(400).json({ email: "Only email needed" });
       return;

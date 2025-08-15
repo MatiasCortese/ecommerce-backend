@@ -1,96 +1,97 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-
-// Paso 2: Agregamos Firebase
-import {authMiddleware} from "@/lib/middlewares";
 import { firestoreAdmin } from "@/lib/firestore";
 const collection = firestoreAdmin.collection("orders");
-
-// Mantenemos comentado MercadoPago por ahora
-// import {mpClient, Preference} from "@/lib/mercadopago";
+import {mpClient, Preference} from "@/lib/mercadopago";
+import {authMiddleware} from "@/lib/middlewares";
 
 type Data = {
-  message: string;
-  debug?: any;
+  name: string;
 };
 
+// esto hay que abstraerlo. No puede tocar la DB y MP directo. Hay que crear un servicio que se encargue de la lógica de negocio y que use el cliente de MP y la DB.
 async function handler (
   req: NextApiRequest,
-  res: NextApiResponse<Data>,
-  decodedToken: any // Agregamos el parámetro del token
+  res: NextApiResponse<any>,
+  decodedToken: any
 ) {
-  console.log('=== HANDLER START ===');
-  console.log('Method:', req.method);
-  console.log('URL:', req.url);
-  console.log('Headers:', JSON.stringify(req.headers, null, 2));
-  
   try {
     if (req.method === 'POST') {
-      console.log('=== POST REQUEST ===');
-      console.log('DecodedToken:', decodedToken);
-      console.log('Firebase collection available:', !!collection); // Test Firebase
-      console.log('Body type:', typeof req.body);
-      console.log('Body:', req.body);
-      console.log('Query:', req.query);
+      // Verificar que el body existe
+      if (!req.body) {
+        return res.status(400).json({ error: "Request body is missing" });
+      }
+
+      let body;
       
-      // Test básico sin usar las librerías externas
-      return res.status(200).json({
-        message: "POST request received successfully",
-        debug: {
-          method: req.method,
-          bodyType: typeof req.body,
-          body: req.body,
-          headers: req.headers,
-          timestamp: new Date().toISOString()
+      // Manejar tanto string como objeto
+      if (typeof req.body === 'string') {
+        try {
+          body = JSON.parse(req.body);
+        } catch (parseError) {
+          console.error('JSON Parse Error:', parseError);
+          return res.status(400).json({ error: "Invalid JSON format" });
+        }
+      } else {
+        body = req.body;
+      }
+
+      const userId = decodedToken.userId; 
+      const { itemId, itemTitle, quantity, unitPrice, productId, external_reference } = body;
+      
+      if (!userId || !productId || !itemId || !itemTitle || !quantity || !unitPrice || !external_reference) {
+        return res.status(400).json({ error: "Required parameters are missing" });
+      }
+
+      // crear compra en firebase
+      const ordenCreada = await collection.add({
+        userId, 
+        productId, 
+        itemId, 
+        itemTitle, 
+        quantity, 
+        unitPrice, 
+        status: "pending", 
+        createdAt: new Date(), 
+        external_reference
+      });
+
+      const preferenceClient = new Preference(mpClient);
+      const preferenceMp = await preferenceClient.create({
+        body: {
+          items: [
+            {
+              title: itemTitle,
+              unit_price: unitPrice,
+              quantity: quantity,
+              id: itemId,
+            }
+          ],
+          external_reference: external_reference
         }
       });
 
+      return res.json({linkDePago: preferenceMp.init_point});
+      // Genera una compra en nuestra base de datos y además genera una orden de pago en MercadoPago. Devuelve una URL de MercadoPago a donde vamos a redigirigir al user para que pague y el orderId.
+      
     } else if (req.method === "GET") {
-      console.log('=== GET REQUEST ===');
-      const { orderId } = req.query;
-      console.log('OrderId:', orderId);
-      
-      return res.status(200).json({ 
-        message: "GET request received successfully",
-        debug: {
-          method: req.method,
-          orderId,
-          query: req.query,
-          timestamp: new Date().toISOString()
-        }
-      });
-
+      const {orderId} = req.query;
+      return res.status(200).json({ message: "Soy el get a order by id", orderId });
+      // Devuelve una orden con toda la data incluyendo el estado de la orden.
     } else {
-      console.log('=== UNSUPPORTED METHOD ===');
-      console.log('Method received:', req.method);
-      return res.status(405).json({ 
-        message: "Method Not Allowed",
-        debug: {
-          method: req.method,
-          allowedMethods: ['GET', 'POST']
-        }
-      });
+      return res.status(405).json({error: "Method Not Allowed"});
     }
 
   } catch (error) {
-    console.error('=== HANDLER ERROR ===');
-    console.error('Error:', error);
-    console.error('Error message:', (error as any).message);
-    console.error('Error stack:', (error as any).stack);
-    
+    console.error('Handler Error:', error);
     return res.status(500).json({ 
-      message: "Internal server error",
-      debug: {
-        error: (error as any).message,
-        stack: process.env.NODE_ENV === 'development' ? (error as any).stack : undefined
-      }
+      error: "Internal server error",
+      details: process.env.NODE_ENV === 'development' ? (error as any).message : undefined
     });
   }
 }
 
-// Ahora probamos CON el authMiddleware
 export default authMiddleware(handler);
 
-// También probamos sin configuración especial del body
 export const config = {
   api: {
     bodyParser: {

@@ -23,7 +23,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<any>,
 ) {
-  if (req.method == "POST") {
+  if (req.method === "POST") {
     console.log("dentro del post de ipn mercadopago");
     // Recasibe la señal de MercadoPago para confirmar que el pago fué realizado con éxito.
     const body = req.body;
@@ -32,14 +32,12 @@ export default async function handler(
     });
     if (body.action == "payment.created" || body.action == "payment.updated"){
       const paymentId = body.data.id;
-      // Use the correct method to retrieve payment details; adjust as needed based on your Payment class implementation
-      // 121660069870
       const paymentData = await new Payment(mpClient).get({id: paymentId});
       if (paymentData.status != "approved"){
         return res.status(400).json({error: "Payment not approved or in process"});
       }
       // buscar el pago en nuestra db de firebase y cambiar el status a approved
-      //  Cambia el estado de la compra en nuestra base 
+      //  Cambia el estado de la compra en nuestra base
       const orderEnDb = await firestoreAdmin.collection("orders")
         .where("external_reference", "==", paymentData.external_reference)
         .get();

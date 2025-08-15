@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-// import { sendCodeToEmail } from "@/lib/controllers/auth-controller";
+import { sendCodeToEmail } from "@/lib/controllers/auth-controller";
 
 
 type Data = {
@@ -26,7 +26,7 @@ console.log("SOY EL BODY ", body);
       return;
     }
     const { email, name, last_name, address, phone } = body;
-    // await sendCodeToEmail(email, name, last_name, address, phone);
+    await sendCodeToEmail(email, name, last_name, address, phone);
     res.status(200).json({ message: "Email sended successfully"});
   } else {
     res.status(405).json({error: "Method Not Allowed"})

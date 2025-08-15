@@ -32,8 +32,8 @@ export async function findOrCreateAuth(data:any) {
     }
 }
 
-function manageNodemailerEmail(destinatario: any, code: any) {
-    const transporter = nodemailer.createTransport({
+async function manageNodemailerEmail(destinatario: any, code: any) {
+    const transporter = await nodemailer.createTransport({
         service: 'gmail',
         auth: {
             user: process.env.email,
@@ -57,12 +57,13 @@ function manageNodemailerEmail(destinatario: any, code: any) {
 }
 
 export async function sendCodeToEmail(email: any, name: any, last_name: any, address: any, phone: any) {
-        console.log("sendCodeToEmail INICIO", email);
-
-    const auth = await Auth.findAuthByEmail(email);
-    if (!auth) {
-        throw new Error("Auth not found");
-    }
+    console.log("sendCodeToEmail INICIO", email);
+    const auth = await findOrCreateAuth({email, name, last_name, address, phone});
+    // const auth = await Auth.findAuthByEmail(email);
+    console.log("Soy el auth ",  auth)
+    // if (!auth) {
+    //     throw new Error("Auth not found");
+    // }
     const code = random.intBetween(100000, 999999);
     const now = new Date();
     const twentyMinutesFromNow = addMinutes(now, 20);

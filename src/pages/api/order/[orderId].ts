@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { firestoreAdmin } from "@/lib/firestore";
 const collection = firestoreAdmin.collection("orders");
 import { authMiddleware } from "@/lib/middlewares";
-import order from ".";
 
 type Data = {
   name: string;
@@ -40,9 +39,3 @@ async function handler (
 }
 
 export default authMiddleware(handler);
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};

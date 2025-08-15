@@ -3,6 +3,8 @@ import { firestoreAdmin } from "@/lib/firestore";
 const collection = firestoreAdmin.collection("orders");
 import {mpClient, Preference} from "@/lib/mercadopago";
 import {authMiddleware} from "@/lib/middlewares";
+import getRawBody from "raw-body";
+
 
 type Data = {
   name: string;
@@ -15,9 +17,16 @@ async function handler (
   decodedToken: any
 ) {
   if (req.method === 'POST') {
+    let body;
+    try {
+      const raw = await getRawBody(req);
+      body = JSON.parse(raw.toString("utf-8"));
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid JSON" });
+    }
     const userId = decodedToken.userId; 
     // acá mandar parámetros minimos que pide la preferencia de MP
-    const { itemId, itemTitle, quantity, unitPrice, productId, external_reference } = req.body;
+    const { itemId, itemTitle, quantity, unitPrice, productId, external_reference } = body;
     if (!userId|| !productId || !itemId || !itemTitle || !quantity || !unitPrice || ! external_reference) {
       return res.status(400).json({ error: "Required parameters is/are missing" });
     }
@@ -52,3 +61,9 @@ async function handler (
 }
 
 export default authMiddleware(handler);
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

@@ -58,6 +58,12 @@ export default async function handler(
     } 
   }
   else {
-    res.status(405).json({error: "Method Not Allowed"})
+    return res.status(405).json({error: "Method Not Allowed"})
   }
 }
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

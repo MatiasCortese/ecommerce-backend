@@ -29,3 +29,9 @@ async function handler(
 }
 
 export default authMiddleware(handler);
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

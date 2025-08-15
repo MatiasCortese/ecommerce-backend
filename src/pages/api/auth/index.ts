@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { sendCodeToEmail } from "@/lib/controllers/auth-controller";
-
+import getRawBody from "raw-body";
 
 type Data = {
   email: string;
@@ -32,3 +32,9 @@ console.log("SOY EL BODY ", body);
     res.status(405).json({error: "Method Not Allowed"})
   }
 }
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

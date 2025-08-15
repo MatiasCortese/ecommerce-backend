@@ -1,104 +1,92 @@
-
 import type { NextApiRequest, NextApiResponse } from "next";
-import { firestoreAdmin } from "@/lib/firestore";
-const collection = firestoreAdmin.collection("orders");
-import {mpClient, Preference} from "@/lib/mercadopago";
-import {authMiddleware} from "@/lib/middlewares";
+
+// Temporalmente comentamos las importaciones que pueden estar causando problemas
+// import { firestoreAdmin } from "@/lib/firestore";
+// const collection = firestoreAdmin.collection("orders");
+// import {mpClient, Preference} from "@/lib/mercadopago";
+// import {authMiddleware} from "@/lib/middlewares";
+
+type Data = {
+  message: string;
+  debug?: any;
+};
 
 async function handler (
   req: NextApiRequest,
-  res: NextApiResponse<any>,
-  decodedToken: any
+  res: NextApiResponse<Data>
 ) {
+  console.log('=== HANDLER START ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  
   try {
     if (req.method === 'POST') {
-      // Verificar que el body existe
-      if (!req.body) {
-        return res.status(400).json({ error: "Request body is missing" });
-      }
-
-      let body;
+      console.log('=== POST REQUEST ===');
+      console.log('Body type:', typeof req.body);
+      console.log('Body:', req.body);
+      console.log('Query:', req.query);
       
-      // Manejar tanto string como objeto
-      if (typeof req.body === 'string') {
-        try {
-          body = JSON.parse(req.body);
-        } catch (parseError) {
-          console.error('JSON Parse Error:', parseError);
-          return res.status(400).json({ error: "Invalid JSON format" });
-        }
-      } else {
-        body = req.body;
-      }
-
-      const userId = decodedToken.userId; 
-      const { itemId, itemTitle, quantity, unitPrice, productId, external_reference } = body;
-      
-      // Validación de parámetros requeridos
-      if (!userId || !productId || !itemId || !itemTitle || !quantity || !unitPrice || !external_reference) {
-        return res.status(400).json({ 
-          error: "Required parameters are missing",
-          received: { userId: !!userId, productId: !!productId, itemId: !!itemId, itemTitle: !!itemTitle, quantity: !!quantity, unitPrice: !!unitPrice, external_reference: !!external_reference }
-        });
-      }
-
-      // Crear orden en Firebase
-      const ordenCreada = await collection.add({
-        userId, 
-        productId, 
-        itemId, 
-        itemTitle, 
-        quantity, 
-        unitPrice, 
-        status: "pending", 
-        createdAt: new Date(), 
-        external_reference
-      });
-
-      // Crear preferencia en MercadoPago
-      const preferenceClient = new Preference(mpClient);
-      const preferenceMp = await preferenceClient.create({
-        body: {
-          items: [
-            {
-              title: itemTitle,
-              unit_price: unitPrice,
-              quantity: quantity,
-              id: itemId,
-            }
-          ],
-          external_reference: external_reference
-        }
-      });
-
+      // Test básico sin usar las librerías externas
       return res.status(200).json({
-        linkDePago: preferenceMp.init_point,
-        orderId: ordenCreada.id
+        message: "POST request received successfully",
+        debug: {
+          method: req.method,
+          bodyType: typeof req.body,
+          body: req.body,
+          headers: req.headers,
+          timestamp: new Date().toISOString()
+        }
       });
 
     } else if (req.method === "GET") {
+      console.log('=== GET REQUEST ===');
       const { orderId } = req.query;
+      console.log('OrderId:', orderId);
+      
       return res.status(200).json({ 
-        message: "Soy el get a order by id", 
-        orderId 
+        message: "GET request received successfully",
+        debug: {
+          method: req.method,
+          orderId,
+          query: req.query,
+          timestamp: new Date().toISOString()
+        }
       });
 
     } else {
-      return res.status(405).json({ error: "Method Not Allowed" });
+      console.log('=== UNSUPPORTED METHOD ===');
+      console.log('Method received:', req.method);
+      return res.status(405).json({ 
+        message: "Method Not Allowed",
+        debug: {
+          method: req.method,
+          allowedMethods: ['GET', 'POST']
+        }
+      });
     }
 
   } catch (error) {
-    console.error('Handler Error:', error);
+    
+    console.error('=== HANDLER ERROR ===');
+    console.error('Error:', error);
+    console.error('Error message:', (error as any).message);
+    console.error('Error stack:', (error as any).stack);
+    
     return res.status(500).json({ 
-      error: "Internal server error",
-      details: process.env.NODE_ENV === 'development' ? (error as any).message : undefined
+      message: "Internal server error",
+      debug: {
+        error: (error as any).message,
+        stack: process.env.NODE_ENV === 'development' ? (error as any).stack : undefined
+      }
     });
   }
 }
 
-export default authMiddleware(handler);
+// Primero probamos SIN el authMiddleware
+export default handler;
 
-// Configuración para permitir que Next.js maneje el body parsing
+// También probamos sin configuración especial del body
 export const config = {
   api: {
     bodyParser: {

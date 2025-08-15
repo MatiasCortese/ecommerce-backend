@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// Temporalmente comentamos las importaciones que pueden estar causando problemas
+// Paso 1: Agregamos solo el authMiddleware
+import {authMiddleware} from "@/lib/middlewares";
+
+// Mantenemos comentadas las otras por ahora
 // import { firestoreAdmin } from "@/lib/firestore";
 // const collection = firestoreAdmin.collection("orders");
 // import {mpClient, Preference} from "@/lib/mercadopago";
-// import {authMiddleware} from "@/lib/middlewares";
 
 type Data = {
   message: string;
@@ -13,7 +15,8 @@ type Data = {
 
 async function handler (
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<Data>,
+  decodedToken: any // Agregamos el parámetro del token
 ) {
   console.log('=== HANDLER START ===');
   console.log('Method:', req.method);
@@ -23,6 +26,7 @@ async function handler (
   try {
     if (req.method === 'POST') {
       console.log('=== POST REQUEST ===');
+      console.log('DecodedToken:', decodedToken); // Agregamos log del token
       console.log('Body type:', typeof req.body);
       console.log('Body:', req.body);
       console.log('Query:', req.query);
@@ -67,7 +71,6 @@ async function handler (
     }
 
   } catch (error) {
-    
     console.error('=== HANDLER ERROR ===');
     console.error('Error:', error);
     console.error('Error message:', (error as any).message);
@@ -83,8 +86,8 @@ async function handler (
   }
 }
 
-// Primero probamos SIN el authMiddleware
-export default handler;
+// Ahora probamos CON el authMiddleware
+export default authMiddleware(handler);
 
 // También probamos sin configuración especial del body
 export const config = {

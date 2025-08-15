@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// Paso 1: Agregamos solo el authMiddleware
+// Paso 2: Agregamos Firebase
 import {authMiddleware} from "@/lib/middlewares";
+import { firestoreAdmin } from "@/lib/firestore";
+const collection = firestoreAdmin.collection("orders");
 
-// Mantenemos comentadas las otras por ahora
-// import { firestoreAdmin } from "@/lib/firestore";
-// const collection = firestoreAdmin.collection("orders");
+// Mantenemos comentado MercadoPago por ahora
 // import {mpClient, Preference} from "@/lib/mercadopago";
 
 type Data = {
@@ -26,7 +26,8 @@ async function handler (
   try {
     if (req.method === 'POST') {
       console.log('=== POST REQUEST ===');
-      console.log('DecodedToken:', decodedToken); // Agregamos log del token
+      console.log('DecodedToken:', decodedToken);
+      console.log('Firebase collection available:', !!collection); // Test Firebase
       console.log('Body type:', typeof req.body);
       console.log('Body:', req.body);
       console.log('Query:', req.query);

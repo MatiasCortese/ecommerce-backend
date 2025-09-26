@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createAuthToken } from "@/lib/controllers/auth-controller";
 import NextCors from "nextjs-cors";
-
+import getRawBody from "raw-body";
 type Data = {
   name: string;
 };
@@ -15,6 +15,15 @@ export default async function handler(
     origin: "*",
     optionsSuccessStatus: 200,
   });
+  let body = req.body;
+    if (!body || typeof body === "string" || Buffer.isBuffer(body)) {
+    try {
+      const raw = await getRawBody(req);
+      body = JSON.parse(raw.toString("utf-8"));
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid JSON" });
+    }
+  }
   if (req.method === 'POST') {
     if(!req.body.email || !req.body.code) {
       return res.status(400).json({ error: "Email and code are required" });

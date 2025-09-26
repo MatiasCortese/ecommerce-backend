@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { sendCodeToEmail } from "@/lib/controllers/auth-controller";
 import getRawBody from "raw-body";
 import NextCors from "nextjs-cors";
+import { get } from "http";
 
 type Data = {
   email: string;
@@ -17,11 +18,12 @@ export default async function handler(
     origin: "*",
     optionsSuccessStatus: 200,
   });
-  let body = req.body;
+  let body : any = req.body;
 
-  if (typeof body === "string") {
+  if (!body || typeof body === "string" || Buffer.isBuffer(body)) {
     try {
-      body = JSON.parse(body);
+      const raw = await getRawBody(req)
+      body = JSON.parse(raw.toString("utf-8"));
     } catch (e) {
       return res.status(400).json({ error: "Invalid JSON" });
     }

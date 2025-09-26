@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { sendCodeToEmail } from "@/lib/controllers/auth-controller";
 import getRawBody from "raw-body";
+import NextCors from "nextjs-cors";
 
 type Data = {
   email: string;
@@ -11,15 +12,21 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<any>,
 ) {
+  await NextCors(req, res, {
+    methods: ["POST", "GET", "OPTIONS"],
+    origin: "*",
+    optionsSuccessStatus: 200,
+  });
   let body = req.body;
-if (typeof body === "string") {
-  try {
-    body = JSON.parse(body);
-  } catch (e) {
-    return res.status(400).json({ error: "Invalid JSON" });
+
+  if (typeof body === "string") {
+    try {
+      body = JSON.parse(body);
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid JSON" });
+    }
   }
-}
-console.log("SOY EL BODY ", body);
+  console.log("SOY EL BODY ", body);
   if (req.method === 'POST') {
     if(!body.email){
       res.status(400).json({ email: "Only email needed" });

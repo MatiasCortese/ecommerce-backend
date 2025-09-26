@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createAuthToken } from "@/lib/controllers/auth-controller";
+import NextCors from "nextjs-cors";
 
 type Data = {
   name: string;
@@ -9,6 +10,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<any>,
 ) {
+  await NextCors(req, res, {
+    methods: ["POST", "GET", "OPTIONS"],
+    origin: "*",
+    optionsSuccessStatus: 200,
+  });
   if (req.method === 'POST') {
     if(!req.body.email || !req.body.code) {
       return res.status(400).json({ error: "Email and code are required" });

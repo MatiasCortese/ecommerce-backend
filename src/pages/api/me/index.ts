@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import NextCors from "nextjs-cors";
+import getRawBody from "raw-body";
 import { authMiddleware } from "@/lib/middlewares";
 import { User } from "@/lib/models/user";
 
@@ -11,6 +13,20 @@ async function handler(
   res: NextApiResponse<any>,
   decodedToken: any
 ) {
+  await NextCors(req, res, {
+    methods: ["GET", "PATCH", "OPTIONS"],
+    origin: "*",
+    optionsSuccessStatus: 200,
+  });
+  let body = req.body;
+  if (!body || typeof body === "string" || Buffer.isBuffer(body)) {
+    try {
+      const raw = await getRawBody(req);
+      body = JSON.parse(raw.toString("utf-8"));
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid JSON" });
+    }
+  }
   if (req.method === 'GET') {
     if(!req.headers.authorization){
       return res.status(401).json({ error: "Authorization header is required" });
@@ -23,7 +39,7 @@ async function handler(
   if (req.method === 'PATCH'){
     try {
       const user = await User.findById(decodedToken.userId);
-      await user.updateData(req.body);
+      await user.updateData(body);
       res.json({message: "User updated successfully"});
     }
     // Permite modificar algunos datos del usuario al que pertenezca el token.

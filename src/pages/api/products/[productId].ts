@@ -1,4 +1,6 @@
 import { algoliaClient } from "@/lib/algolia";
+import NextCors from "nextjs-cors";
+import getRawBody from "raw-body";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type Data = {
@@ -6,6 +8,20 @@ type Data = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  await NextCors(req, res, {
+    methods: ["GET", "OPTIONS"],
+    origin: "*",
+    optionsSuccessStatus: 200,
+  });
+  let body = req.body;
+  if (!body || typeof body === "string" || Buffer.isBuffer(body)) {
+    try {
+      const raw = await getRawBody(req);
+      body = JSON.parse(raw.toString("utf-8"));
+    } catch (e) {
+      body = {};
+    }
+  }
   const { productId } = req.query;
   if (req.method === "GET") {
     try {

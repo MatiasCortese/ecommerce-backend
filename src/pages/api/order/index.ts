@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import NextCors from "nextjs-cors";
+import getRawBody from "raw-body";
 import { firestoreAdmin } from "@/lib/firestore";
 const collection = firestoreAdmin.collection("orders");
 import {mpClient, Preference} from "@/lib/mercadopago";
@@ -14,25 +16,25 @@ async function handler (
   res: NextApiResponse<any>,
   decodedToken: any
 ) {
+  await NextCors(req, res, {
+    methods: ["POST", "GET", "OPTIONS"],
+    origin: "*",
+    optionsSuccessStatus: 200,
+  });
+  let body = req.body;
+  if (!body || typeof body === "string" || Buffer.isBuffer(body)) {
+    try {
+      const raw = await getRawBody(req);
+      body = JSON.parse(raw.toString("utf-8"));
+    } catch (e) {
+      body = {};
+    }
+  }
   try {
     if (req.method === 'POST') {
       // Verificar que el body existe
-      if (!req.body) {
+      if (!body) {
         return res.status(400).json({ error: "Request body is missing" });
-      }
-
-      let body;
-      
-      // Manejar tanto string como objeto
-      if (typeof req.body === 'string') {
-        try {
-          body = JSON.parse(req.body);
-        } catch (parseError) {
-          console.error('JSON Parse Error:', parseError);
-          return res.status(400).json({ error: "Invalid JSON format" });
-        }
-      } else {
-        body = req.body;
       }
 
       const userId = decodedToken.userId; 
@@ -94,8 +96,6 @@ export default authMiddleware(handler);
 
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: '1mb',
-    },
+    bodyParser: false,
   },
 };

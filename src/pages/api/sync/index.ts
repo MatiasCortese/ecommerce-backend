@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import NextCors from "nextjs-cors";
+import getRawBody from "raw-body";
 // Update the import path if necessary, for example:
 import { algoliaClient } from "@/lib/algolia";
 import { getOffsetAndLimit } from "@/lib/requests";
@@ -7,6 +9,22 @@ const tableName = "Furniture";
 
 
 export default function(req:NextApiRequest, res:NextApiResponse){
+    (async () => {
+        await NextCors(req, res, {
+            methods: ["GET", "OPTIONS"],
+            origin: "*",
+            optionsSuccessStatus: 200,
+        });
+        let body = req.body;
+        if (!body || typeof body === "string" || Buffer.isBuffer(body)) {
+            try {
+                const raw = await getRawBody(req);
+                body = JSON.parse(raw.toString("utf-8"));
+            } catch (e) {
+                body = {};
+            }
+        }
+    })();
     const {offset, limit} = getOffsetAndLimit(req, 100, 100000);
     airTableBase(tableName)
         .select({

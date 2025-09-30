@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import NextCors from "nextjs-cors";
+import getRawBody from "raw-body";
 import { Payment, mpClient } from "@/lib/mercadopago";
 import { firestoreAdmin } from "@/lib/firestore";
 import {enviarCorreoALaAdmin, enviarCorreoAlPayer} from "@/lib/nodemailer";
@@ -12,29 +14,28 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>,
 ) {
+  await NextCors(req, res, {
+    methods: ["POST", "OPTIONS"],
+    origin: "*",
+    optionsSuccessStatus: 200,
+  });
+  let body = req.body;
+  if (!body || typeof body === "string" || Buffer.isBuffer(body)) {
+    try {
+      const raw = await getRawBody(req);
+      body = JSON.parse(raw.toString("utf-8"));
+    } catch (e) {
+      return res.status(400).json({ message: "Invalid JSON" });
+    }
+  }
   try {
     if (req.method === "POST") {
       console.log("dentro del post de ipn mercadopago");
       
       // Verificar que el body existe
-      if (!req.body) {
+      if (!body) {
         console.log("Body is missing");
         return res.status(400).json({ message: "Body is missing" });
-      }
-
-      let body;
-      
-      // Manejar tanto string como objeto
-      if (typeof req.body === 'string') {
-        try {
-          body = JSON.parse(req.body);
-        } catch (parseError) {
-          console.error('JSON Parse Error:', parseError);
-          console.log('Raw body:', req.body);
-          return res.status(400).json({ message: "Invalid JSON format" });
-        }
-      } else {
-        body = req.body;
       }
 
       console.log({
@@ -117,8 +118,6 @@ export default async function handler(
 // Habilitar el body parser para JSON
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: '1mb',
-    },
+    bodyParser: false,
   },
 };

@@ -25,7 +25,7 @@ export default async function handler(
     }
   }
   if (req.method === 'POST') {
-    if(!req.body.email || !req.body.code) {
+    if(!body.email || !body.code) {
       return res.status(400).json({ error: "Email and code are required" });
     }
     const { email, code } = req.body;
@@ -35,7 +35,6 @@ export default async function handler(
   } else {
     res.status(405).json({error: "Method Not Allowed"})
   }
-  
 }
 
 

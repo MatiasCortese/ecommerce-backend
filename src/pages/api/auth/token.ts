@@ -28,7 +28,7 @@ export default async function handler(
     if(!body.email || !body.code) {
       return res.status(400).json({ error: "Email and code are required" });
     }
-    const { email, code } = req.body;
+    const { email, code } = body;
     const token = await createAuthToken(email, code);
     res.json({token})
     // Recibe un email y un código y valida que sean los correctos. En el caso de que sean correctos devuelve un token e invalida el código.

@@ -20,19 +20,21 @@ async function handler(
   });
   console.log("[DEBUG] Content-Type:", req.headers["content-type"]);
   let body = req.body;
-  if (!body || typeof body === "string" || Buffer.isBuffer(body)) {
-    try {
-      const raw = await getRawBody(req);
-      const rawString = raw.toString("utf-8");
-      console.log("[DEBUG] Raw body string:", rawString);
-      body = JSON.parse(rawString);
-      console.log("[DEBUG] Parsed body:", body);
-    } catch (e) {
-      console.log("[ERROR] JSON parse error:", e);
-      return res.status(400).json({ error: "Invalid JSON", details: String(e) });
+  if (req.method === 'PATCH') {
+    if (!body || typeof body === "string" || Buffer.isBuffer(body)) {
+      try {
+        const raw = await getRawBody(req);
+        const rawString = raw.toString("utf-8");
+        console.log("[DEBUG] Raw body string:", rawString);
+        body = JSON.parse(rawString);
+        console.log("[DEBUG] Parsed body:", body);
+      } catch (e) {
+        console.log("[ERROR] JSON parse error:", e);
+        return res.status(400).json({ error: "Invalid JSON", details: String(e) });
+      }
+    } else {
+      console.log("[DEBUG] Direct body:", body);
     }
-  } else {
-    console.log("[DEBUG] Direct body:", body);
   }
   if (req.method === 'OPTIONS') {
     // El middleware de CORS ya maneja la respuesta y los headers

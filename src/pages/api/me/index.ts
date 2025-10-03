@@ -23,7 +23,9 @@ async function handler(
     try {
       const raw = await getRawBody(req);
       body = JSON.parse(raw.toString("utf-8"));
+      console.log("imprimo el body" ,body)
     } catch (e) {
+      console.log(e)
       return res.status(400).json({ error: "Invalid JSON" });
     }
   }

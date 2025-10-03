@@ -27,6 +27,11 @@ async function handler(
       return res.status(400).json({ error: "Invalid JSON" });
     }
   }
+  if (req.method === 'OPTIONS') {
+    // El middleware de CORS ya maneja la respuesta y los headers
+    res.status(200).json({});
+    return;
+  }
   if (req.method === 'GET') {
     if(!req.headers.authorization){
       return res.status(401).json({ error: "Authorization header is required" });
